@@ -1,0 +1,96 @@
+model Lot {
+    id           String   @unique @default(uuid())
+    description  String
+    bet          Bet[]
+    tags         Tag[]
+    createdAt    DateTime @default(now())
+    updatedAt    DateTime @updatedAt
+    endDate      DateTime
+    closed       Boolean  @default(false)
+    minPrice     Float
+    currentPrice Float
+    vendor       Vendor   @relation(fields: [vendorId], references: [id])
+    vendorId     String
+}
+
+model Tag {
+    id   String @unique @default(uuid())
+    lots Lot[]
+    name String
+}
+
+model Account {
+    id                 String  @id @default(uuid())
+    userId             String
+    type               String
+    provider           String
+    providerAccountId  String
+    refresh_token      String?
+    access_token       String?
+    expires_at         Int?
+    token_type         String?
+    scope              String?
+    id_token           String?
+    session_state      String?
+    oauth_token_secret String?
+    oauth_token        String?
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([provider, providerAccountId])
+}
+
+model Session {
+    id           String   @id @default(uuid())
+    sessionToken String   @unique
+    expires      DateTime
+    user         User     @relation(fields: [userId], references: [id])
+    userId       String
+}
+
+model User {
+    id            String    @id @default(uuid())
+    name          String?
+    email         String?   @unique
+    emailVerified String
+    imageUrl      String?
+    accounts      Account[]
+    sessions      Session[]
+    vendor        Vendor?
+    buyer         Buyer?
+}
+
+model Vendor {
+    id     String @id @default(uuid())
+    user   User   @relation(fields: [userId], references: [id])
+    userId String @unique
+    Lot    Lot[]
+}
+
+model Buyer {
+    id     String @id @default(uuid())
+    user   User   @relation(fields: [userId], references: [id])
+    userId String @unique
+    bet    Bet[]
+}
+
+model Bet {
+    id        String   @id @default(uuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    Buyer     Buyer    @relation(fields: [buyerId], references: [id])
+    Lot       Lot      @relation(fields: [lotId], references: [id])
+    price     Float
+    current   Boolean  @default(true)
+    canceled  Boolean  @default(false)
+    buyerId   String
+    lotId     String
+}
+
+model VerificationToken {
+    identifier String
+    token      String   @unique
+    expires    DateTime
+
+    @@unique([identifier, token])
+}
